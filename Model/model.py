@@ -71,18 +71,148 @@ for i in range(M):
     for j in range(N):
         R[i, j] = model.addVar(vtype=gp.GRB.INTEGER, name="R[%s,%s]"%(i,j))
 
-xik = {}
+x = {}
 for i in range(M):
     for k in range(U):
-        xik[i, k] = model.addVar(vtype=gp.GRB.BINARY, name="xik[%s,%s]"%(i,k))
+        x[i, k] = model.addVar(vtype=gp.GRB.BINARY, name="xik[%s,%s]"%(i,k))
 
 model.update()
-
 
 
 # OBJECTIVE FUNCTION
+# (1)
 obj = gp.LinExpr()
-obj += gp.quicksum([w[j] * R[i, j] for i in range(M) for j in range(N)])
+obj += gp.quicksum(w[j] * R[i, j] for i in range(M) for j in range(N))
 model.setObjective(obj, gp.GRB.MAXIMIZE)
 model.update()
+
+# CONSTRAINTS
+
+V = 10e6    # big M
+
+# (2)
+for i in range(M):
+    for j in range(N):
+        model.addConstr(P_cum[i, j] == gp.quicksum(P[i, u] for u in range(j+1)), name='(2)[%s,%s]'%(i,j))
+
+# (3)
+for i in range(M):
+    LHS, RHS = gp.LinExpr(), gp.LinExpr()
+    LHS += P_cum[i, N-1] - gp.quicksum(C[k] * x[i, k] for k in range(U))
+    RHS += V * (epsilon[i] - 1)
+    model.addConstr(LHS <= RHS, name='(3)[%s]'%(i))
+
+# (4)
+for i in range(M):
+    LHS, RHS = gp.LinExpr(), gp.LinExpr()
+    LHS += P_cum[i, N-1] - gp.quicksum(C[k] * x[i, k] for k in range(U))
+    RHS += V * epsilon[i]
+    model.addConstr(LHS <= RHS, name='(4)[%s]'%(i))
+
+# (5)
+for i in range(M):
+    LHS, RHS = gp.LinExpr(), gp.LinExpr()
+    LHS += L[i]
+    RHS += gp.quicksum(C[k] * x[i, k] for k in range(U)) + V * (1 - epsilon[i])
+    model.addConstr(LHS <= RHS, name='(5)[%s]'%(i))
+
+# (6)
+for i in range(M):
+    LHS, RHS = gp.LinExpr(), gp.LinExpr()
+    LHS += L[i]
+    RHS += gp.quicksum(C[k] * x[i, k] for k in range(U)) + V * (epsilon[i] - 1)
+    model.addConstr(LHS >= RHS, name='(6)[%s]'%(i))
+
+# (7)
+for i in range(M):
+    LHS, RHS = gp.LinExpr(), gp.LinExpr()
+    LHS += L[i]
+    RHS += P_cum[i, N-1] + V * epsilon[i]
+    model.addConstr(LHS <= RHS, name='(7)[%s]'%(i))
+
+# (8)
+for i in range(M):
+    LHS, RHS = gp.LinExpr(), gp.LinExpr()
+    LHS += L[i]
+    RHS += P_cum[i, N-1] - V * epsilon[i]
+    model.addConstr(LHS >= RHS, name='(8)[%s]'%(i))
+
+# (9)
+for i in range(M):
+    for j in range(N):
+        LHS, RHS = gp.LinExpr(), gp.LinExpr()
+        LHS += L[i] - P_cum[i, j]
+        RHS += V * (alpha[i, j] - 1)
+        model.addConstr(LHS >= RHS, name='(9)[%s,%s]'%(i,j))    # should be strict inequality
+
+# (10)
+for i in range(M):
+    for j in range(N):
+        LHS, RHS = gp.LinExpr(), gp.LinExpr()
+        LHS += L[i] - P_cum[i, j]
+        RHS += V * alpha[i, j]
+        model.addConstr(LHS <= RHS, name='(10)[%s,%s]'%(i,j))
+
+# (11)
+for i in range(M):
+    for j in range(N):
+        LHS, RHS = gp.LinExpr(), gp.LinExpr()
+        LHS += P_hat_cum[i, j]
+        RHS += (1 - alpha[i, j]) * V
+        model.addConstr(LHS <= RHS, name='(11)[%s,%s]'%(i,j))
+
+# (12)
+for i in range(M):
+    for j in range(N):
+        LHS, RHS = gp.LinExpr(), gp.LinExpr()
+        LHS += P_hat_cum[i, j]
+        RHS += (alpha[i, j] - 1) * V
+        model.addConstr(LHS >= RHS, name='(12)[%s,%s]'%(i,j))
+
+# (13)
+for i in range(M):
+    for j in range(N):
+        LHS, RHS = gp.LinExpr(), gp.LinExpr()
+        LHS += P_hat_cum[i, j]
+        RHS += P_cum[i, j] - L[i] + alpha[i, j] * V
+        model.addConstr(LHS <= RHS, name='(13)[%s,%s]'%(i,j))
+
+# (14)
+for i in range(M):
+    for j in range(N):
+        LHS, RHS = gp.LinExpr(), gp.LinExpr()
+        LHS += P_hat_cum[i, j]
+        RHS += P_cum[i, j] - L[i] - alpha[i, j] * V
+        model.addConstr(LHS >= RHS, name='(14)[%s,%s]'%(i,j))
+
+# (15)
+for i in range(M):
+    for j in range(N):
+        LHS, RHS = gp.LinExpr(), gp.LinExpr()
+        LHS += R[i, j]
+        if j != 0:
+            RHS += P_cum[i, j] - P_hat_cum[i, j] - P_cum[i, j-1] - P_hat_cum[i, j-1]
+        elif j == 0:
+            RHS += P_cum[i, j] - P_hat_cum[i, j]
+        model.addConstr(LHS == RHS, name='(15)[%s,%s]'%(i,j))
+
+# (16)
+model.addConstr(gp.quicksum(L[i] for i in range(M)) <= QC, name='(16)')
+
+# (17)
+for k in range(U):
+    model.addConstr(gp.quicksum(x[i, k] for i in range(M)) <= 1, name='(17)[%s]'%(k))
+
+# # (18)
+# for i in range(M):
+#     for k in range(U):
+#         val = 0     # not sure how to get this value!!!
+#         model.addConstr(x[i, k] == val, name='(18)[%s,%s]'%(i,k))
+
+model.update()
 model.optimize()
+model.write('model.lp')
+
+# print results
+for p in P_cum.values():
+    print(p.X)
