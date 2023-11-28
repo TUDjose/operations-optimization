@@ -77,3 +77,12 @@ for i in range(M):
         xik[i, k] = model.addVar(vtype=gp.GRB.BINARY, name="xik[%s,%s]"%(i,k))
 
 model.update()
+
+
+
+# OBJECTIVE FUNCTION
+obj = gp.LinExpr()
+obj += gp.quicksum([w[j] * R[i, j] for i in range(M) for j in range(N)])
+model.setObjective(obj, gp.GRB.MAXIMIZE)
+model.update()
+model.optimize()
