@@ -12,17 +12,17 @@ import pandas as pd
 df = np.genfromtxt('test_data.csv', delimiter=';', skip_header=1)
 
 # Create a new model
-model = gp.Model("VRP")
+model = gp.Model()
 
 # SETS
 M = 5     # set of cities
 N = 4     # set of priority groups
-U = 2    # set of airplanes
+U = 14    # set of airplanes
 
 # PROBLEM INPUTS
 C = np.empty((U, ))     # data structure for capacity of airplane in k ∈ U
 P = np.empty((M, N))     # data structure for number of individuals of group j ∈ N in city i ∈ M
-QC = 2000    # number of available quarantine locations
+QC = 4000    # number of available quarantine locations
 w = np.empty((N, ))      # importance of citizens in group j ∈ N
 
 def set_airplane_capacity():
@@ -40,6 +40,7 @@ def set_importance():
 set_airplane_capacity()
 set_individuals()
 set_importance()
+
 
 # MILP VARIABLES
 
@@ -59,7 +60,8 @@ for i in range(M):
 P_cum = {}
 for i in range(M):
     for j in range(N):
-        P_cum[i, j] = model.addVar(vtype=gp.GRB.INTEGER, name="P_cum[%s,%s]"%(i,j))
+        # P_cum[i, j] = model.addVar(vtype=gp.GRB.INTEGER, name="P_cum[%s,%s]"%(i,j))
+        P_cum[i, j] = gp.quicksum(P[i, u] for u in range(j+1))  # define P_cum directly instead of as a variable/constraint
 
 P_hat_cum = {}
 for i in range(M):
@@ -91,9 +93,9 @@ model.update()
 V = 10e6    # big M
 
 # (2)
-for i in range(M):
-    for j in range(N):
-        model.addConstr(P_cum[i, j] == gp.quicksum(P[i, u] for u in range(j+1)), name='(2)[%s,%s]'%(i,j))
+# for i in range(M):
+#     for j in range(N):
+#         model.addConstr(P_cum[i, j] == gp.quicksum(P[i, u] for u in range(j+1)), name='(2)[%s,%s]'%(i,j))
 
 # (3)
 for i in range(M):
@@ -203,11 +205,6 @@ model.addConstr(gp.quicksum(L[i] for i in range(M)) <= QC, name='(16)')
 for k in range(U):
     model.addConstr(gp.quicksum(x[i, k] for i in range(M)) <= 1, name='(17)[%s]'%(k))
 
-# (18)
-# for i in range(M):
-#     for k in range(U):
-#         val = 0   # not sure how to get this value!!!
-#         model.addConstr(x[i, k] == val, name='(18)[%s,%s]'%(i,k))
 
 model.update()
 model.optimize()
@@ -221,3 +218,5 @@ if model.status == gp.GRB.INF_OR_UNBD or model.status == gp.GRB.INFEASIBLE:
         if c.IISConstr:
             print('%s' % c.constrName)
 
+for (i, j) in P_hat_cum.keys():
+    print(f'{i},{j}: ', R[i, j].X)
