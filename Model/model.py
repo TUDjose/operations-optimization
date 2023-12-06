@@ -17,12 +17,12 @@ model = gp.Model()
 # SETS
 M = 5     # set of cities
 N = 4     # set of priority groups
-U = 14    # set of airplanes
+U = 10    # set of airplanes
 
 # PROBLEM INPUTS
-C = np.empty((U, ))     # data structure for capacity of airplane in k ∈ U
+C = np.empty((U, ))      # data structure for capacity of airplane in k ∈ U
 P = np.empty((M, N))     # data structure for number of individuals of group j ∈ N in city i ∈ M
-QC = 4000    # number of available quarantine locations
+QC = 2500                # number of available quarantine locations
 w = np.empty((N, ))      # importance of citizens in group j ∈ N
 
 def set_airplane_capacity():
@@ -193,7 +193,7 @@ for i in range(M):
         LHS, RHS = gp.LinExpr(), gp.LinExpr()
         LHS += R[i, j]
         if j != 0:
-            RHS += P_cum[i, j] - P_hat_cum[i, j] - P_cum[i, j-1] - P_hat_cum[i, j-1]
+            RHS += P_cum[i, j] - P_hat_cum[i, j] - P_cum[i, j-1] + P_hat_cum[i, j-1]
         elif j == 0:
             RHS += P_cum[i, j] - P_hat_cum[i, j]
         model.addConstr(LHS == RHS, name='(15)[%s,%s]'%(i,j))
@@ -218,5 +218,9 @@ if model.status == gp.GRB.INF_OR_UNBD or model.status == gp.GRB.INFEASIBLE:
         if c.IISConstr:
             print('%s' % c.constrName)
 
-for (i, j) in P_hat_cum.keys():
+for (i, j) in R.keys():
     print(f'{i},{j}: ', R[i, j].X)
+
+for (i, k) in x.keys():
+    print(f'{i},{k}: ', x[i, k].X)
+print(sum(x[i, k].X for (i, k) in x.keys()))
