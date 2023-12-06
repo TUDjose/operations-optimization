@@ -12,7 +12,7 @@ import pandas as pd
 df = np.genfromtxt('test_data.csv', delimiter=';', skip_header=1)
 
 # Create a new model
-model = gp.Model()
+model = gp.Model("VRP")
 
 # SETS
 M = 5     # set of cities
@@ -100,7 +100,7 @@ for i in range(M):
     LHS, RHS = gp.LinExpr(), gp.LinExpr()
     LHS += P_cum[i, N-1] - gp.quicksum(C[k] * x[i, k] for k in range(U))
     RHS += V * (epsilon[i] - 1)
-    model.addConstr(LHS <= RHS, name='(3)[%s]'%(i))
+    model.addConstr(LHS >= RHS, name='(3)[%s]'%(i))
 
 # (4)
 for i in range(M):
@@ -203,16 +203,23 @@ model.addConstr(gp.quicksum(L[i] for i in range(M)) <= QC, name='(16)')
 for k in range(U):
     model.addConstr(gp.quicksum(x[i, k] for i in range(M)) <= 1, name='(17)[%s]'%(k))
 
-# # (18)
+# (18)
 # for i in range(M):
 #     for k in range(U):
-#         val = 0     # not sure how to get this value!!!
+#         val = 0   # not sure how to get this value!!!
 #         model.addConstr(x[i, k] == val, name='(18)[%s,%s]'%(i,k))
 
 model.update()
 model.optimize()
-model.write('model.lp')
 
-# print results
-for p in P_cum.values():
-    print(p.X)
+print(model.status)
+if model.status == gp.GRB.INF_OR_UNBD:
+    print("HI")
+    model.computeIIS()
+    model.write("infeasible.lp")
+    print('\nThe following constraint(s) cannot be satisfied:')
+    for c in model.getConstrs():
+        if c.IISConstr:
+            print('%s' % c.constrName)
+
+model.write('model.lp')
