@@ -7,7 +7,7 @@ paper "A mixed integer linear programming model and a basic variable neighbourho
 
 This was implemented as part of the course Operations Optimization, by Group 26:
 - José Cunha (5216087)
-- Pablo Garcia (xxx)
+- Pablo Garcia (5270944)
 - Stijn Koelemaij (xxx)
 
 
