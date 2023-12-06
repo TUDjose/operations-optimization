@@ -211,10 +211,9 @@ for k in range(U):
 
 model.update()
 model.optimize()
+model.write('model.lp')
 
-print(model.status)
-if model.status == gp.GRB.INF_OR_UNBD:
-    print("HI")
+if model.status == gp.GRB.INF_OR_UNBD or model.status == gp.GRB.INFEASIBLE:
     model.computeIIS()
     model.write("infeasible.lp")
     print('\nThe following constraint(s) cannot be satisfied:')
@@ -222,4 +221,3 @@ if model.status == gp.GRB.INF_OR_UNBD:
         if c.IISConstr:
             print('%s' % c.constrName)
 
-model.write('model.lp')
