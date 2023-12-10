@@ -2,22 +2,27 @@
 Create a MILP forumlation for a repatriation scheduling problem based on the following paper:
     - https://www.sciencedirect.com/science/article/pii/S0957417422002019#d1e3348
 """
+import os
 
 import gurobipy as gp
+import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
+from data_generator import DataGenerator
+import pickle
 
 
 class RSPModel:
-    def __init__(self, data, w, U=2, QC=2000):
+    def __init__(self, data: DataGenerator):
         self.model = gp.Model()
-        self.P = data
-        self.M, self.N = self.P.shape
-        self.w = w
-        self.U = U
-        self.C = np.empty((self.U,))
-        self.QC = QC
-        self.V = 10e6
+        self.P = data.P
+        self.M = data.M
+        self.N = data.N
+        self.w = data.w
+        self.U = data.U
+        self.C = data.C
+        self.QC = data.QC
+        self.V = 1e6
 
         self.alpha = {}
         self.epsilon = {}
@@ -29,9 +34,6 @@ class RSPModel:
 
     def __repr__(self):
         return f'RSPModel({self.P}, {self.w}, {self.U}, {self.QC})'
-
-    def set_airplane_capacity(self):
-        self.C.fill(300)
 
     def create_variables(self):
         for i in range(self.M):
@@ -179,10 +181,9 @@ class RSPModel:
 
         self.model.update()
 
-    def solve(self):
-        self.model.Params.LogToConsole = 0
+    def solve(self, print_log=False):
+        self.model.Params.LogToConsole = 0 if not print_log else 1
 
-        self.set_airplane_capacity()
         self.create_variables()
         self.create_objective()
         self.create_constraints()
@@ -200,15 +201,28 @@ class RSPModel:
 
 
 if __name__ == '__main__':
-    us = [2,4,6,8,8,10,10,12,12,12,14]
-    QCs = [2000,2000,2000,2000,2500,2500,3000,3000,3500,4000,4000]
-    df = np.genfromtxt('test_data.csv', delimiter=';', skip_header=1)
-
     results = []
 
-    for i in tqdm(range(len(us))):
-        RSP = RSPModel(data=df[:5,:], w=df[5,:], U=us[i], QC=QCs[i])
-        RSP.solve()
-        results.append([RSP.U, RSP.QC, RSP.model.objVal])
+    dg = DataGenerator.from_file('../tests/test_data.csv', 14, 4000)
+    RSP = RSPModel(dg)
+    RSP.solve()
+    print(RSP.model.objVal)
 
-    print(results)
+    # # this will take forever
+    # with tqdm(total=len(os.listdir('data'))) as pbar:
+    #     for filename in os.listdir('data'):
+    #         print(filename)
+    #         with open(f'data/{filename}', 'rb') as f:
+    #             loaded_array = pickle.load(f)
+    #         RSP = RSPModel(DataGenerator.recover(loaded_array))
+    #         RSP.solve()
+    #         results.append([RSP.U, RSP.QC, RSP.model.objVal])
+    #         pbar.update(1)
+    #
+    #
+    # results = np.array(results)
+    #
+    # fig = plt.figure()
+    # ax = fig.add_subplot(projection='3d')
+    # ax.plot_trisurf(results[:, 0], results[:, 1], results[:, 2], cmap='viridis', linewidth=0.2, edgecolor='k')
+    # plt.show()
