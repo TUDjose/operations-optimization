@@ -3,7 +3,6 @@ Create a MILP forumlation for a repatriation scheduling problem based on the fol
     - https://www.sciencedirect.com/science/article/pii/S0957417422002019#d1e3348
 """
 import os
-
 import gurobipy as gp
 import matplotlib.pyplot as plt
 import numpy as np
@@ -203,10 +202,18 @@ class RSPModel:
 if __name__ == '__main__':
     results = []
 
-    dg = DataGenerator.from_file('../tests/test_data.csv', 14, 4000)
+    dg = DataGenerator.from_file('../tests/test_data.csv', 14, 4000, 300)
     RSP = RSPModel(dg)
     RSP.solve()
     print(RSP.model.objVal)
+
+    with open(f'data/150-600-3-0.8.pkl', 'rb') as f:
+        loaded_array = pickle.load(f)
+    dg = DataGenerator.recover(loaded_array)
+    RSP = RSPModel(dg)
+    RSP.solve()
+    print(RSP.model.objVal)
+    print(sum(RSP.C))
 
     # # this will take forever
     # with tqdm(total=len(os.listdir('data'))) as pbar:

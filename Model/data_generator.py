@@ -14,14 +14,14 @@ class DataGenerator:
             self.w = from_array[6]
             self.fq = 1
         else:
-            np.random.seed(0)
+            # np.random.seed(0)
             self.M = m
             self.N = n
             self.U = u
             self.fq = fq
 
             self.C = np.empty((self.U,))
-            capacity = [100, 150, 200, 250, 300, 350]
+            capacity = [200, 250, 300, 350]
             for i in range(len(self.C)):
                 self.C[i] = np.random.choice(capacity)
             self.QC = self.fq * np.sum(self.C)
@@ -46,10 +46,10 @@ class DataGenerator:
 
 
     @staticmethod
-    def from_file(filename, u, qc): # -> 'DataGenerator':
+    def from_file(filename, u, qc, capacity): # -> 'DataGenerator':
         df = np.genfromtxt(filename, delimiter=';', skip_header=1)
         C = np.empty((u, ))
-        C.fill(300)
+        C.fill(capacity)
         arr = [df[:5, :].shape[0], df[:5, :].shape[1], u, qc, C, df[:5, :], df[5, :]]
         return DataGenerator(from_array=arr)
 

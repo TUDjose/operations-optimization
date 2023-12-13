@@ -4,11 +4,12 @@ from Model.data_generator import DataGenerator
 
 class TestConstraints(unittest.TestCase):
 
-    dg = DataGenerator.from_file('../tests/test_data.csv', 2, 2000)
-    RSP = RSPModel(dg)
-    RSP.solve()
-
     def test_objetive(self):
+        dg = DataGenerator.from_file('tests/test_data.csv', 2, 2000)
+        # print(dg.M)
+        # RSP = RSPModel(dg)
+        # RSP.solve()
+        # self.assertEqual(RSP.model.objVal, 6000)
         pass
 
     def test_c2(self):
