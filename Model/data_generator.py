@@ -50,7 +50,7 @@ class DataGenerator:
         df = np.genfromtxt(filename, delimiter=';', skip_header=1)
         C = np.empty((u, ))
         C.fill(capacity)
-        arr = [df[:5, :].shape[0], df[:5, :].shape[1], u, qc, C, df[:5, :], df[5, :]]
+        arr = [df[:-1, :].shape[0], df[:-1, :].shape[1], u, qc, C, df[:-1, :], df[-1, :]]
         return DataGenerator(from_array=arr)
 
 
