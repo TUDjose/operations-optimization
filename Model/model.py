@@ -202,12 +202,12 @@ class RSPModel:
 if __name__ == '__main__':
     results = []
 
-    dg = DataGenerator.from_file('../tests/test_data.csv', 14, 4000, 300)
+    dg = DataGenerator.from_file('tests/test_data.csv', 14, 4000, 300)
     RSP = RSPModel(dg)
     RSP.solve()
     print(RSP.model.objVal)
 
-    with open(f'data/150-600-3-0.8.pkl', 'rb') as f:
+    with open(f'Model/data/150-600-3-0.8.pkl', 'rb') as f:
         loaded_array = pickle.load(f)
     dg = DataGenerator.recover(loaded_array)
     RSP = RSPModel(dg)

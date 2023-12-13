@@ -53,6 +53,10 @@ class DataGenerator:
         arr = [df[:-1, :].shape[0], df[:-1, :].shape[1], u, qc, C, df[:-1, :], df[-1, :]]
         return DataGenerator(from_array=arr)
 
+    @staticmethod
+    def from_array(arr):
+        return DataGenerator(from_array=arr)
+
 
 
 if __name__ == '__main__':
