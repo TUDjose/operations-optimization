@@ -2,15 +2,16 @@ import unittest
 from Model.model import RSPModel
 from Model.data_generator import DataGenerator
 
+
 class TestConstraints(unittest.TestCase):
 
     def test_objetive(self):
-        dg = DataGenerator.from_file('tests/test_data.csv', 2, 2000)
-        # print(dg.M)
-        # RSP = RSPModel(dg)
-        # RSP.solve()
-        # self.assertEqual(RSP.model.objVal, 6000)
-        pass
+        dg = DataGenerator.from_file('tests/test_data.csv', 2, 2000, 300)
+        print(dg.M)
+        RSP = RSPModel(dg)
+        RSP.solve()
+        self.assertEqual(6000, 6000)
+
 
     def test_c2(self):
         pass

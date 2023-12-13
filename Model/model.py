@@ -7,7 +7,7 @@ import gurobipy as gp
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
-from data_generator import DataGenerator
+from Model.data_generator import DataGenerator
 import pickle
 
 
@@ -196,7 +196,7 @@ class RSPModel:
                 if c.IISConstr:
                     print('%s' % c.constrName)
         else:
-            self.model.write(f'results/model_{self.U}_{self.QC}.lp')
+            self.model.write(f'Model/results/model_{self.U}_{self.QC}.lp')
 
 
 if __name__ == '__main__':
