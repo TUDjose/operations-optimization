@@ -60,20 +60,23 @@ class DataGenerator:
 
 
 if __name__ == '__main__':
-    cities = [150, 200, 250]
-    airplanes = [600, 800, 1000]
-    groups = [3, 6, 9]
-    omega = [0.8, 1.2]
-    with tqdm(total=len(cities) * len(airplanes) * len(groups) * len(omega)) as pbar:
-        for c in cities:
-            for a in airplanes:
-                for g in groups:
-                    for o in omega:
-                        data = DataGenerator(c, g, a, o)
-                        data.store()
-                        pbar.update(1)
+    # cities = [150, 200, 250]
+    # airplanes = [600, 800, 1000]
+    # groups = [3, 6, 9]
+    # omega = [0.8, 1.2]
+    # with tqdm(total=len(cities) * len(airplanes) * len(groups) * len(omega)) as pbar:
+    #     for c in cities:
+    #         for a in airplanes:
+    #             for g in groups:
+    #                 for o in omega:
+    #                     data = DataGenerator(c, g, a, o)
+    #                     data.store()
+    #                     pbar.update(1)
+    #
+    # with open('data/150-600-3-0.8.pkl', 'rb') as f:
+    #     loaded_array = pickle.load(f)
+    # DATA = DataGenerator.recover(loaded_array)
+    # print(DATA.M, DATA.N, DATA.U, DATA.QC, DATA.C, DATA.P, DATA.w)
 
-    with open('data/150-600-3-0.8.pkl', 'rb') as f:
-        loaded_array = pickle.load(f)
-    DATA = DataGenerator.recover(loaded_array)
-    print(DATA.M, DATA.N, DATA.U, DATA.QC, DATA.C, DATA.P, DATA.w)
+    data = DataGenerator(10, 60, 4, 1)
+    data.store()
