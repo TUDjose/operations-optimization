@@ -199,21 +199,35 @@ class RSPModel:
             self.model.write(f'Model/results/model_{self.U}_{self.QC}.lp')
 
 
+def ratio(lst):
+    return [lst[i] / lst[i + 1] for i in range(len(lst) - 1)]
+
 if __name__ == '__main__':
-    results = []
-
-    dg = DataGenerator.from_file('tests/test_data.csv', 14, 4000, 300)
+    dg = DataGenerator.from_file('tests/test_data.csv', 8, 2500, 300)
     RSP = RSPModel(dg)
+    R_hat = np.empty_like(RSP.P)
+    RSP.w = [9, 5, 3, 1]
     RSP.solve()
-    print(RSP.model.objVal)
 
-    with open(f'Model/data/150-600-3-0.8.pkl', 'rb') as f:
-        loaded_array = pickle.load(f)
-    dg = DataGenerator.recover(loaded_array)
-    RSP = RSPModel(dg)
-    RSP.solve()
     print(RSP.model.objVal)
-    print(sum(RSP.C))
+    print("planes: ", [k for k, v in RSP.x.items() if v.x == 1])
+    print("L_i: ", [RSP.L[i].x for i in range(RSP.M)])
+    print("P_i: ", [RSP.P_cum[i, RSP.N - 1].getValue() for i in range(RSP.M)])
+    print("P_hat_i: ", [RSP.P_hat_cum[i, RSP.N - 1].x for i in range(RSP.M)])
+
+    for i in range(RSP.M):
+        for j in range(RSP.N):
+            R_hat[i, j] = RSP.P[i, j] - RSP.R[i, j].x
+    print(RSP.P)
+    print(R_hat)
+
+
+    # with open(f'Model/data/150-600-3-0.8.pkl', 'rb') as f:
+    #     loaded_array = pickle.load(f)
+    # dg = DataGenerator.recover(loaded_array)
+    # RSP = RSPModel(dg)
+    # RSP.solve()
+    # print(RSP.model.objVal)
 
     # # this will take forever
     # with tqdm(total=len(os.listdir('data'))) as pbar:

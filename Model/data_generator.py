@@ -78,5 +78,5 @@ if __name__ == '__main__':
     # DATA = DataGenerator.recover(loaded_array)
     # print(DATA.M, DATA.N, DATA.U, DATA.QC, DATA.C, DATA.P, DATA.w)
 
-    data = DataGenerator(10, 60, 4, 1)
+    data = DataGenerator(5, 4, 8, 1)
     data.store()
