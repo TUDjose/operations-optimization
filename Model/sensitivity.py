@@ -59,6 +59,7 @@ def w_sensitivity():
 def p_sensitivity():
     res = []
     c = 0
+    C = []
 
     with open('Model/data/5-8-4-1.pkl', 'rb') as f:
         loaded_array = pickle.load(f)
@@ -68,36 +69,28 @@ def p_sensitivity():
     res.append(count_i([(i, k) for (i, k) in RSP.x.keys() if RSP.x[i, k].x == 1.]))
 
     n = 500
-    with tqdm(total=n) as pbar:
-        for _ in range(n):
-            with open('Model/data/5-8-4-1.pkl', 'rb') as f:
-                loaded_array = pickle.load(f)
-            dg = DataGenerator.recover(loaded_array)
-            for i in range(dg.M):
-                for j in range(dg.N):
-                    dg.P[i, j] += random.randint(-100, 101)
-                    if dg.P[i, j] < 0:
-                        dg.P[i, j] = 0
-            RSP = RSPModel(dg)
-            RSP.solve()
-            res.append(count_i([(i, k) for (i, k) in RSP.x.keys() if RSP.x[i, k].x == 1.]))
-            if count_i([(i, k) for (i, k) in RSP.x.keys() if RSP.x[i, k].x == 1.]) == res[0]:
-                c += 1
-            pbar.update(1)
+    ps = [5, 10, 20, 30, 40, 50, 75, 100]
+    with tqdm(total=n*len(ps)) as pbar:
+        for p in ps:
+            c=0
+            for _ in range(n):
+                with open('Model/data/5-8-4-1.pkl', 'rb') as f:
+                    loaded_array = pickle.load(f)
+                dg = DataGenerator.recover(loaded_array)
+                for i in range(dg.M):
+                    for j in range(dg.N):
+                        dg.P[i, j] += random.randint(-p, p+1)
+                        if dg.P[i, j] < 0:
+                            dg.P[i, j] = 0
+                RSP = RSPModel(dg)
+                RSP.solve()
+                res.append(count_i([(i, k) for (i, k) in RSP.x.keys() if RSP.x[i, k].x == 1.]))
+                if count_i([(i, k) for (i, k) in RSP.x.keys() if RSP.x[i, k].x == 1.]) == res[0]:
+                    c += 1
+                pbar.update(1)
+            C.append(c/n)
 
-    return c/n, res
-def capacity_sensitivity():
-    dg = DataGenerator.from_file('tests/test_data.csv', 14, 4000, 300)
-    RSP = RSPModel(dg)
-    RSP.solve()
-    return
-
-def qc_sensitivity():
-    dg = DataGenerator.from_file('tests/test_data.csv', 14, 4000, 300)
-    RSP = RSPModel(dg)
-    RSP.solve()
-    return
-
+    return C
 
 
 if __name__ == '__main__':
