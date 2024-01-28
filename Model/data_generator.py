@@ -38,7 +38,7 @@ class DataGenerator:
 
     def store(self):
         save_arr = [self.M, self.N, self.U, self.QC, self.C, self.P, self.w]
-        pickle.dump(save_arr, open(f'data/{self}.pkl', 'wb'))
+        pickle.dump(save_arr, open(f'Model/data/{self}.pkl', 'wb'))
 
     @staticmethod
     def recover(data) -> 'DataGenerator':

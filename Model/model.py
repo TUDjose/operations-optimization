@@ -9,6 +9,7 @@ import numpy as np
 from tqdm import tqdm
 from Model.data_generator import DataGenerator
 import pickle
+from collections import Counter
 
 
 class RSPModel:
@@ -202,24 +203,35 @@ class RSPModel:
 def ratio(lst):
     return [lst[i] / lst[i + 1] for i in range(len(lst) - 1)]
 
-if __name__ == '__main__':
-    dg = DataGenerator.from_file('tests/test_data.csv', 8, 2500, 300)
+
+def run_model(filename, u, qc, c):
+    dg = DataGenerator.from_file(filename, u, qc, c)
     RSP = RSPModel(dg)
-    R_hat = np.empty_like(RSP.P)
-    RSP.w = [9, 5, 3, 1]
     RSP.solve()
 
-    print(RSP.model.objVal)
-    print("planes: ", [k for k, v in RSP.x.items() if v.x == 1])
-    print("L_i: ", [RSP.L[i].x for i in range(RSP.M)])
-    print("P_i: ", [RSP.P_cum[i, RSP.N - 1].getValue() for i in range(RSP.M)])
-    print("P_hat_i: ", [RSP.P_hat_cum[i, RSP.N - 1].x for i in range(RSP.M)])
 
-    for i in range(RSP.M):
-        for j in range(RSP.N):
-            R_hat[i, j] = RSP.P[i, j] - RSP.R[i, j].x
-    print(RSP.P)
-    print(R_hat)
+
+if __name__ == '__main__':
+
+    def count_i(lst):
+        k = []
+        for tup in lst:
+            k.append(tup[0])
+        counts = Counter(k)
+        return list(counts.values())
+
+
+    vars = [(2, 2000), (4, 2000), (6, 2000), (8, 2000), (8, 2500), (10, 2500), (10, 3000), (12, 3000), (12, 3500), (12, 4000), (14, 4000)]
+    res = []
+    for u, qc in vars:
+        dg = DataGenerator.from_file('tests/test_data.csv', u, qc, 300)
+        RSP = RSPModel(dg)
+        RSP.solve()
+        print(RSP.x)
+        res.append((RSP.model.objVal, count_i([(i, k) for (i, k) in RSP.x.keys() if RSP.x[i, k].x == 1.])))
+
+    print(res)
+
 
 
     # with open(f'Model/data/150-600-3-0.8.pkl', 'rb') as f:
